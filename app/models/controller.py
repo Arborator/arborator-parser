@@ -3,7 +3,7 @@ from flask_restx import Api, Resource, Namespace
 from .schema import ModelSchema
 
 
-namespace = Namespace("models", description="Single namespace, single entity")
+namespace = Namespace("models", description="Create, Access, List and Delete Models")
 
 
 @namespace.route("/")

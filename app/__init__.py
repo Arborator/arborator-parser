@@ -1,5 +1,5 @@
-from flask import Flask, jsonify
-from flask_restx import Api
+from flask import Flask
+from flask_restx import Api, Resource
 
 
 BASE_URL = "/parser"
@@ -19,9 +19,10 @@ def create_app():
 
     register_routes(api, BASE_URL)
 
-    @app.route("/health")
-    def health():
-        return jsonify("healthy")
+    @api.route(f"{BASE_URL}/healthy")
+    class Healthy(Resource):
+        def get(self):
+            return {"healthy": True}
 
 
     return app
