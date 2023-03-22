@@ -41,3 +41,14 @@ tail -f ./logs/arborator-parser.log
 Logs of BertForDeprel :
 TODO
 
+## How to debug ?
+First check all the logs mentioned above
+
+Then, check healthyness : On the server, do the following curl :
+```bash
+curl http://127.0.0.1:8088/parser/healthy
+```
+
+## API doc
+If port tunneling to server, you can access to the doc by going on the URL : https://127.0.0.1:8088/parser/doc
+
