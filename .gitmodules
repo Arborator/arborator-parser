@@ -1,0 +1,3 @@
+[submodule "BertForDeprel"]
+	path = BertForDeprel
+	url = git@github.com:kirianguiller/BertForDeprel.git
