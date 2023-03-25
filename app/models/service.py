@@ -3,7 +3,7 @@ import os
 import shutil
 import time
 from pathlib import Path
-from typing import Dict, List
+from typing import Dict, List, Literal, TypedDict
 from dotenv import load_dotenv
 from celery import shared_task
 
@@ -25,6 +25,10 @@ if not os.path.isfile(PATH_BERTFORDEPREL_SCRIPT):
     raise SystemError(f"No PATH_BERTFORDEPREL_SCRIPT=`{PATH_BERTFORDEPREL_SCRIPT}` file found")
 
 
+class ModelInfo_t(TypedDict):
+    project_name: str
+    model_id: str
+
 
 class ModelService:
     @staticmethod
@@ -32,6 +36,17 @@ class ModelService:
         return os.listdir(PATH_MODELS)
 
     @staticmethod
-    def make_root_folder_path_from_model_info(model_info: Dict[str, str]):
+    def make_root_folder_path_from_model_info(model_info: ModelInfo_t):
         root_folder_path = os.path.join(PATH_MODELS, model_info["project_name"], model_info["model_id"])
         return root_folder_path
+    
+    @staticmethod
+    def get_model_state(model_info: ModelInfo_t) -> Literal["NO_EXIST", "TRAINING", "READY"]:
+        root_folder_path = ModelService.make_root_folder_path_from_model_info(model_info)
+        if not os.path.isdir(root_folder_path):
+            return "NO_EXIST"
+        path_success_file = os.path.join(root_folder_path, "training_task_state.json")
+        if os.path.isfile(path_success_file):
+            return "READY"
+        return "TRAINING"
+
