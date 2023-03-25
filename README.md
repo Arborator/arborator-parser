@@ -20,26 +20,49 @@ conda create -n parser-venv python=3.8
 python3.8 -m venv parser-venv
 ```
 
-- Create service for user arboratorgrew (can't use system-wise service as arboratorgrew is not root)
+- Create service for user arboratorgrew (can't use system-wise service as arboratorgrew is not root). The template of the service is at the root of this repo.
 
 ```bash
 systemctl --user edit arborator-parser.service --full --force
 systemctl --user enable arborator-parser.service
+systemctl --user start arborator-parser.service
 ```
 
-## Where are the logs ?
-Status of the service :
+- Create service for user Celery app (can't use system-wise service as arboratorgrew is not root). The template of the service is at the root of this repo.
+
+```bash
+systemctl --user edit arborator-parser-celery.service --full --force
+systemctl --user enable arborator-parser-celery.service
+systemctl --user start arborator-parser-celery.service
 ```
+
+Add the nginx server block conf file. Again, it can be found at the root of this repo.
+
+## Where are the logs ?
+Machine wise service logging : 
+```
+journalctl --user -f
+```
+
+
+Status of the service :
+```bash
+# for flask app
 systemctl --user status arborator-parser.service
+# and for celery app
+systemctl --user status arborator-parser-celery.service
 ```
 
 Logs of arborator-parser (from root of this repo)
 ```
 tail -f ./logs/arborator-parser.log
+journalctl --user-unit=arborator-parser-celery.service -f
 ```
 
-Logs of BertForDeprel :
 TODO
+- Logs of BertForDeprel 
+- Easy log for celery app
+
 
 ## How to debug ?
 First check all the logs mentioned above

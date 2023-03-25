@@ -1,2 +1,4 @@
-source venv/bin/activate
-python wgsi.py
+conda activate parser-venv
+python wsgi.py
+
+celery -A wsgi.celery_app worker --loglevel INFO
