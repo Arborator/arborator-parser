@@ -17,6 +17,7 @@ class ConllSampleField(fields.Field):
             try: 
                 sentenceConllToJson(sentence_conll)
             except:
+                print("ConllValidationError : ", sentence_conll)
                 raise ValidationError(f'Invalid sentence conll found:\n{sentence_conll}')
         return value
 

@@ -19,7 +19,7 @@ class ModelsResource(Resource):
     "Models"
     # @responds(schema=ModelSchema(many=True), api=namespace)
     def get(self):
-        return ModelService.available_models()
+        return {"status": "success", "data": ModelService.available_models()}
 
 
 # ED = Expected Definition

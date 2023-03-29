@@ -33,7 +33,17 @@ class ModelInfo_t(TypedDict):
 class ModelService:
     @staticmethod
     def available_models():
-        return os.listdir(PATH_MODELS)
+        project_names = os.listdir(PATH_MODELS)
+        model_info_list = []
+        for project_name in project_names:
+            path_project = os.path.join(PATH_MODELS, project_name)
+            models = os.listdir(path_project)
+            for model_id in models:
+                model_info_list.append({
+                    "model_id": model_id,
+                    "project_name": project_name,
+                })
+        return model_info_list
 
     @staticmethod
     def make_root_folder_path_from_model_info(model_info: ModelInfo_t):
