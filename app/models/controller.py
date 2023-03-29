@@ -1,5 +1,5 @@
 import time
-from typing import Dict, List, TypedDict
+from typing import Dict, List, TypedDict, Union
 
 from flask import request
 from flask_restx import Api, Resource, Namespace
@@ -31,6 +31,7 @@ class ModelTrainerPost_ED(TypedDict):
     project_name: str
     train_samples: Dict[str, str]
     max_epoch: int
+    base_model: Union[None, ModelInfo_t]
 
 @namespace.route("/train/start")
 class ModelTrainerResource(Resource):
@@ -48,11 +49,18 @@ class ModelTrainerResource(Resource):
         if model_state != "NO_EXIST":
             return {
                 "status": "failure",
-                "error": "Model already exist with same ID",
+                "error": "Model that you want to create already exist with same ID",
             }
+        
+        if data["base_model"]:
+            base_model_state = ModelService.get_model_state(data["base_model"]) 
+            if base_model_state != "READY":
+                return {
+                    "status": "failure",
+                    "error": "Base Model doesn't exist",
+                }
 
-        print("KK model_info", model_info)
-        result = celery_tasks.train_model.delay(model_info, data["train_samples"], data["max_epoch"])
+        result = celery_tasks.train_model.delay(model_info, data["train_samples"], data["max_epoch"], data["base_model"])
         
         return {
             "status": "success",

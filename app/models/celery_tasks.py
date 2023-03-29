@@ -2,13 +2,14 @@ import json
 import os
 import shutil
 import time
-from typing import Dict, List
+from typing import Dict, List, Union
 from celery import shared_task
-from .service import ModelService, PATH_BERTFORDEPREL_VENV, PATH_BERTFORDEPREL_SCRIPT
+from .service import ModelInfo_t, ModelService, PATH_BERTFORDEPREL_VENV, PATH_BERTFORDEPREL_SCRIPT
 
+DEFAULT_BASE_MODEL_CONFIG_PATH = "/models/SUD_all/SUD_all_1.config.json"
 
 @shared_task()
-def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_epoch: int):
+def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_epoch: int, base_model: Union[None, ModelInfo_t]):
     root_folder_path = ModelService.make_root_folder_path_from_model_info(model_info)
     os.makedirs(root_folder_path, exist_ok=True)
 
@@ -20,13 +21,19 @@ def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_e
         with open(sample_path, "w") as outfile:
             outfile.write(sample_content)
 
+    if base_model:
+        base_model_folder_path = ModelService.make_root_folder_path_from_model_info(base_model)
+        base_model_config = os.path.join(base_model_folder_path, "kirparser.config.json")
+    else:
+        base_model_config = DEFAULT_BASE_MODEL_CONFIG_PATH
+
     os.system(f"{PATH_BERTFORDEPREL_VENV} {PATH_BERTFORDEPREL_SCRIPT} train \
     --root_folder_path \"{root_folder_path}\" \
     --ftrain \"{train_files_folder_path}\" \
     --model_name \"kirparser\" \
     --batch_size 16 \
     --gpu_ids 0 \
-    --conf_pretrain /models/SUD_all/SUD_all_1.config.json \
+    --conf_pretrain {base_model_config} \
     --overwrite_pretrain_classifiers \
     --max_epoch {max_epoch}") 
 

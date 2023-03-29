@@ -28,6 +28,7 @@ class ModelTrainStartPostSchema(Schema):
     project_name = fields.String(attribute="project_name", required=True)
     train_samples = fields.Dict(keys=fields.String(), values=ConllSampleField, attribute="train_samples", required=True)
     max_epoch = fields.Integer(attribute="max_epoch", load_default=10)
+    base_model = fields.Nested(ModelInfoSchema, attribute="base_model", allow_none=True)
 
 
 class ModelTrainStatusPostSchema(Schema):
