@@ -25,13 +25,16 @@ class ModelTrainerPostSchema(Schema):
     "ModelTrainerPost Schema"
     project_name = fields.String(attribute="project_name", required=True)
     train_samples = fields.Dict(keys=fields.String(), values=ConllSampleField, attribute="train_samples", required=True)
-
     max_epoch = fields.Integer(attribute="max_epoch", load_default=10)
 
 
+class ModelTrainStatusPostSchema(Schema):
+    project_name = fields.String(attribute="project_name", required=True)
+    model_id = fields.String(attribute="model_id", required=True)
 
-class ModelParserPostSchema(Schema):
-    "ModelParserPost Schema"
+
+class ModelParserStartPostSchema(Schema):
+    "ModelParserStartPostSchema Schema"
     project_name = fields.String(attribute="project_name", required=True)
     model_id = fields.String(attribute="model_id", required=True)
     to_parse_samples = fields.Dict(keys=fields.String(), values=ConllSampleField, attribute="to_parse_samples", required=True)

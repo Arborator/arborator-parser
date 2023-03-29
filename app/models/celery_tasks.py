@@ -39,7 +39,7 @@ def train_model(model_info: Dict[str, str], train_samples: Dict[str, str]):
 
 
 @shared_task()
-def parse_sentences(model_info: Dict[str, str], to_parse_sentences: Dict[str, List[str]]) -> bool:
+def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str]) -> bool:
     root_folder_path = ModelService.make_root_folder_path_from_model_info(model_info)
 
     model_config_path = os.path.join(root_folder_path, "kirparser.config.json")
@@ -54,11 +54,10 @@ def parse_sentences(model_info: Dict[str, str], to_parse_sentences: Dict[str, Li
     os.makedirs(inpath, exist_ok=True)
     os.makedirs(outpath, exist_ok=True)
 
-    for conll_file, sentences in to_parse_sentences.items():
-        path_to_write_conll = os.path.join(inpath, conll_file + ".conllu")
+    for conll_name, conll_content in to_parse_samples.items():
+        path_to_write_conll = os.path.join(inpath, conll_name + ".conllu")
         with open(path_to_write_conll, "w") as outfile:
-            outfile.write("\n".join(sentences) + "\n")
-
+            outfile.write(conll_content)
 
     os.system(f"{PATH_BERTFORDEPREL_VENV} {PATH_BERTFORDEPREL_SCRIPT} predict \
     --conf \"{model_config_path}\" \
@@ -68,16 +67,14 @@ def parse_sentences(model_info: Dict[str, str], to_parse_sentences: Dict[str, Li
     --batch_size 32 \
     --gpu_ids 0")
 
-    parsed_sentences = {}
-    for conll_file, _ in to_parse_sentences.items():
+    parsed_samples = {}
+    for conll_file, _ in to_parse_samples.items():
         path_to_read_conll = os.path.join(outpath, conll_file + ".conllu")
         with open(path_to_read_conll, "r") as infile:
-            sentences = infile.read().split("\n\n")
-        parsed_sentences[conll_file] = sentences
-    
+            parsed_samples[conll_file] = infile.read()
     shutil.rmtree(path_tmp)
 
-    return parsed_sentences
+    return {"parsed_samples": parsed_samples, "model_info": model_info}
 
 # def sha512_foldername(conll_names, conll_set_list, parser_id, dev_set, epochs, keep_upos):
 #     input_string_ls = [str(parser_id), str(dev_set), str(epochs), str(keep_upos)]+conll_names
