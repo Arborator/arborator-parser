@@ -1,13 +1,14 @@
 from marshmallow import fields, Schema, ValidationError
+from conllup.conllup import sentenceConllToJson
 
 
-class ModelSchema(Schema):
-    """Model schema"""
-    id = fields.String(attribute="id")
+
+class ModelInfoSchema(Schema):
+    """ModelInfo schema"""
+    model_id = fields.String(attribute="model_id")
     project_name = fields.String(attribute="project_name")
 
 
-from conllup.conllup import sentenceConllToJson
 
 class ConllSampleField(fields.Field):
     def _deserialize(self, value, attr, data, **kwargs):
@@ -22,20 +23,22 @@ class ConllSampleField(fields.Field):
         return value
 
 
-class ModelTrainerPostSchema(Schema):
-    "ModelTrainerPost Schema"
+class ModelTrainStartPostSchema(Schema):
+    "ModelTrainStartPost Schema"
     project_name = fields.String(attribute="project_name", required=True)
     train_samples = fields.Dict(keys=fields.String(), values=ConllSampleField, attribute="train_samples", required=True)
     max_epoch = fields.Integer(attribute="max_epoch", load_default=10)
 
 
 class ModelTrainStatusPostSchema(Schema):
-    project_name = fields.String(attribute="project_name", required=True)
-    model_id = fields.String(attribute="model_id", required=True)
+    model_info = fields.Nested(ModelInfoSchema, attribute="model_info", required=True)
 
 
-class ModelParserStartPostSchema(Schema):
-    "ModelParserStartPostSchema Schema"
-    project_name = fields.String(attribute="project_name", required=True)
-    model_id = fields.String(attribute="model_id", required=True)
+class ModelParseStartPostSchema(Schema):
+    "ModelParseStartPost Schema"
+    model_info = fields.Nested(ModelInfoSchema, attribute="model_info", required=True)
     to_parse_samples = fields.Dict(keys=fields.String(), values=ConllSampleField, attribute="to_parse_samples", required=True)
+
+class ModelParseStatusPostSchema(Schema):
+    "ModelParseStatusPost Schema"
+    parse_task_id = fields.String(attribute="parse_task_id", required=True)

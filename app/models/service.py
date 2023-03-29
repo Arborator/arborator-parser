@@ -39,10 +39,13 @@ class ModelService:
             path_project = os.path.join(PATH_MODELS, project_name)
             models = os.listdir(path_project)
             for model_id in models:
-                model_info_list.append({
-                    "model_id": model_id,
-                    "project_name": project_name,
-                })
+                path_model = os.path.join(path_project, model_id)
+                path_success_file = os.path.join(path_model, "training_task_state.json")
+                if os.path.isfile(path_success_file):
+                    model_info_list.append({
+                        "model_id": model_id,
+                        "project_name": project_name,
+                    })
         return model_info_list
 
     @staticmethod

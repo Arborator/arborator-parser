@@ -5,11 +5,15 @@ from flask import request
 from flask_restx import Api, Resource, Namespace
 from flask_accepts.decorators.decorators import responds, accepts
 
-from .schema import ModelTrainStatusPostSchema, ModelTrainerPostSchema, ModelParserStartPostSchema
+from .schema import ModelTrainStartPostSchema, ModelTrainStatusPostSchema, ModelParseStartPostSchema, ModelParseStatusPostSchema
 from .service import ModelService
 
 from . import celery_tasks
 
+
+class ModelInfo_t(TypedDict):
+    project_name: str
+    model_id: str
 
 namespace = Namespace("models", description="Create, Access, List and Delete Models")
 
@@ -31,14 +35,13 @@ class ModelTrainerPost_ED(TypedDict):
 @namespace.route("/train/start")
 class ModelTrainerResource(Resource):
     "Model Trainer"
-    @accepts(schema=ModelTrainerPostSchema, api=namespace)
+    @accepts(schema=ModelTrainStartPostSchema, api=namespace)
     def post(self):
         data: ModelTrainerPost_ED = request.parsed_obj
         
         model_info = {
             "project_name": data["project_name"],
             "model_id": str(int(time.time())),
-            "max_epoch": data["max_epoch"],
         }
 
         model_state = ModelService.get_model_state(model_info) 
@@ -49,7 +52,7 @@ class ModelTrainerResource(Resource):
             }
 
         print("KK model_info", model_info)
-        result = celery_tasks.train_model.delay(model_info, data["train_samples"])
+        result = celery_tasks.train_model.delay(model_info, data["train_samples"], data["max_epoch"])
         
         return {
             "status": "success",
@@ -62,8 +65,7 @@ class ModelTrainerResource(Resource):
 
 
 class ModelTrainStatus_ED(TypedDict):
-    project_name: str
-    model_id: str
+    model_info: ModelInfo_t
 
 
 @namespace.route("/train/status")
@@ -72,10 +74,7 @@ class ModelTrainStatusResource(Resource):
     def post(self):
         data: ModelTrainStatus_ED = request.parsed_obj
 
-        model_info = {
-            "project_name": data["project_name"],
-            "model_id": data["model_id"],
-        }
+        model_info = data["model_info"]
 
         model_state = ModelService.get_model_state(model_info)
         return {
@@ -89,20 +88,17 @@ class ModelTrainStatusResource(Resource):
 
 class ModelParserStartPost_ED(TypedDict):
     project_name: str
-    model_id: str
+    model_info: ModelInfo_t
     to_parse_samples: Dict[str, str]
 
 @namespace.route("/parse/start")
 class ModelParserStartResource(Resource):
     "Model Parser"
-    @accepts(schema=ModelParserStartPostSchema, api=namespace)
+    @accepts(schema=ModelParseStartPostSchema, api=namespace)
     def post(self):
         data: ModelParserStartPost_ED = request.parsed_obj
         
-        model_info = {
-            "project_name": data["project_name"],
-            "model_id": data["model_id"],
-        }
+        model_info = data["model_info"]
 
         model_state = ModelService.get_model_state(model_info) 
         if model_state != "READY":
@@ -130,8 +126,9 @@ class ModelParserStatusPost_ED(TypedDict):
 
 @namespace.route("/parse/status")
 class ModelParserStatusResource(Resource):
+    @accepts(schema=ModelParseStatusPostSchema, api=namespace)
     def post(self) -> Dict[str, object]:
-        data: ModelParserStatusPost_ED = request.get_json(force=True)
+        data: ModelParserStatusPost_ED = request.parsed_obj
         parse_task_id = data["parse_task_id"]
         result = AsyncResult(parse_task_id)
         status = "NO_EXIST"

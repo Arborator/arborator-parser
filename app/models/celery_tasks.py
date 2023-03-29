@@ -8,7 +8,7 @@ from .service import ModelService, PATH_BERTFORDEPREL_VENV, PATH_BERTFORDEPREL_S
 
 
 @shared_task()
-def train_model(model_info: Dict[str, str], train_samples: Dict[str, str]):
+def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_epoch: int):
     root_folder_path = ModelService.make_root_folder_path_from_model_info(model_info)
     os.makedirs(root_folder_path, exist_ok=True)
 
@@ -28,7 +28,7 @@ def train_model(model_info: Dict[str, str], train_samples: Dict[str, str]):
     --gpu_ids 0 \
     --conf_pretrain /models/SUD_all/SUD_all_1.config.json \
     --overwrite_pretrain_classifiers \
-    --max_epoch {model_info['max_epoch']}") 
+    --max_epoch {max_epoch}") 
 
     path_success_file = os.path.join(root_folder_path, "training_task_state.json")
     with open(path_success_file, "w") as outfile:
