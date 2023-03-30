@@ -11,6 +11,7 @@ from celery import shared_task
 load_dotenv(dotenv_path=".flaskenv", verbose=True)
 
 PATH_MODELS = os.getenv("PATH_MODELS") or "/home/arboratorgrew/models"
+print(f"Models Folder : {PATH_MODELS}")
 PATH_BERTFORDEPREL_VENV = os.getenv("PATH_BERTFORDEPREL_VENV") or "/home/arboratorgrew/miniconda3/envs/kirian/bin/python3"
 
 PATH_BERTFORDEPREL_SCRIPT = Path(__file__).parent.parent.parent / "BertForDeprel" / "BertForDeprel" / "run.py"
