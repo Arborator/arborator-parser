@@ -1,0 +1,10 @@
+[Unit]
+Description=Celery worker for myapp
+After=network.target
+
+[Service]
+WorkingDirectory=/home/arboratorgrew/arborator-parser_dev
+ExecStart=/home/arboratorgrew/miniconda3/envs/parser-venv/bin/celery -A wsgi.celery_app worker --loglevel INFO
+
+[Install]
+WantedBy=multi-user.target

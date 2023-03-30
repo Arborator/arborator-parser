@@ -1,0 +1,11 @@
+[Unit]
+Description=uWSGI instance to serve myproject
+After=network.target
+
+[Service]
+WorkingDirectory=/home/arboratorgrew/arborator-parser_dev
+Environment="PATH=/home/arboratorgrew/miniconda3/envs/parser-venv/bin/uwsgi"
+ExecStart=/home/arboratorgrew/miniconda3/envs/parser-venv/bin/uwsgi --ini arborator-parser_dev.ini
+
+[Install]
+WantedBy=multi-user.target

@@ -39,7 +39,15 @@ systemctl --user start arborator-parser-celery.service
 Add the nginx server block conf file. Again, it can be found at the root of this repo.
 
 ## Where are the logs ?
-Machine wise service logging : 
+Machine wise nginx log :
+```bash
+# access logs :
+sudo tail -f /var/log/nginx/access.log
+# and error logs :
+sudo tail -f /var/log/nginx/error.log
+```
+
+User wise service logging : 
 ```
 journalctl --user -f
 ```
@@ -59,9 +67,20 @@ tail -f ./logs/arborator-parser.log
 journalctl --user-unit=arborator-parser-celery.service -f
 ```
 
-TODO
-- Logs of BertForDeprel 
-- Easy log for celery app
+# Production version
+- PORT : 8002
+- Path : /home/arboratorgrew/arborator-parser/wsgi.py
+- PATH_MODELS : /home/arboratorgrew/arborator-parser_models/
+- specific config files : arborator-parser-celery.service ; arborator-parser-celery.service ; arborator-parser.ini ; arborator-parser.nginx.conf ; 
+- socket : arborator-parser.sock
+
+## Development version
+- PORT : 8001
+- Path : /home/arboratorgrew/arborator-parser_dev/wsgi.py
+- PATH_MODELS : /home/arboratorgrew/arborator-parser_models_dev/
+- specific config files : arborator-parser-celery.service ; arborator-parser-celery_dev.service ; arborator-parser_dev.ini ; arborator-parser_dev.nginx.conf ; 
+- socket : arborator-parser_dev.sock
+- It's using the same reddis port as the production server, we want to change that to have each of them using their own instance of reddis.
 
 
 ## How to debug ?
