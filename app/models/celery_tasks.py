@@ -6,14 +6,17 @@ from typing import Dict, List, Union
 from celery import shared_task
 from .service import ModelInfo_t, ModelService, PATH_BERTFORDEPREL_VENV, PATH_BERTFORDEPREL_SCRIPT
 
-DEFAULT_BASE_MODEL_CONFIG_PATH = "/models/SUD_all/SUD_all_1.config.json"
+DEFAULT_BASE_MODEL_CONFIG_PATH = "/models/SUD_all_1/config.json"
 
 @shared_task()
 def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_epoch: int, base_model: Union[None, ModelInfo_t]):
-    root_folder_path = ModelService.make_root_folder_path_from_model_info(model_info)
-    os.makedirs(root_folder_path, exist_ok=True)
+    model_folder_path = ModelService.make_model_folder_path_from_model_info(model_info)
+    if os.path.isdir(model_folder_path):
+        return {"status": "failure", "error": "model already exist"}
 
-    train_files_folder_path = os.path.join(root_folder_path, "train_conlls")
+    os.makedirs(model_folder_path)
+
+    train_files_folder_path = os.path.join(model_folder_path, "train_conlls")
     os.makedirs(train_files_folder_path, exist_ok=True)
 
     for sample_name, sample_content in train_samples.items():
@@ -22,38 +25,52 @@ def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_e
             outfile.write(sample_content)
 
     if base_model:
-        base_model_folder_path = ModelService.make_root_folder_path_from_model_info(base_model)
-        base_model_config = os.path.join(base_model_folder_path, "kirparser.config.json")
+        base_model_folder_path = ModelService.make_model_folder_path_from_model_info(base_model)
+        base_model_config = os.path.join(base_model_folder_path, "config.json")
     else:
         base_model_config = DEFAULT_BASE_MODEL_CONFIG_PATH
 
     os.system(f"{PATH_BERTFORDEPREL_VENV} {PATH_BERTFORDEPREL_SCRIPT} train \
-    --root_folder_path \"{root_folder_path}\" \
+    --model_folder_path \"{model_folder_path}\" \
     --ftrain \"{train_files_folder_path}\" \
-    --model_name \"kirparser\" \
     --batch_size 16 \
     --gpu_ids 0 \
     --conf_pretrain {base_model_config} \
     --overwrite_pretrain_classifiers \
     --max_epoch {max_epoch}") 
 
-    path_success_file = os.path.join(root_folder_path, "training_task_state.json")
-    with open(path_success_file, "w") as outfile:
-        outfile.write(json.dumps({"training_state": "DONE"}))
+    path_success_file = os.path.join(model_folder_path, ".finished")
+    if not os.path.isfile(path_success_file):
+        error_message = f"BertForDeprel/run.py didn't finish training model correctly. Search ERROR_101 in celery logs"
+        print(error_message)
+        shutil.rmtree(model_folder_path)
+        return {"status": "failure", "error": error_message}
 
-    return model_info
+    path_history = os.path.join(model_folder_path, "scores.history.json")
+    with open(path_history, "r") as infile:
+        scores_history = json.loads(infile.read())
+
+    path_best = os.path.join(model_folder_path, "scores.best.json")
+    with open(path_best, "r") as infile:
+        scores_best = json.loads(infile.read())
+
+    return {"status": "success", "data": {
+        "model_info": model_info,
+        "scores_history": scores_history,
+        "scores_best": scores_best,
+    }}
 
 
 
 @shared_task()
 def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str]) -> bool:
-    root_folder_path = ModelService.make_root_folder_path_from_model_info(model_info)
+    model_folder_path = ModelService.make_model_folder_path_from_model_info(model_info)
 
-    model_config_path = os.path.join(root_folder_path, "kirparser.config.json")
+    model_config_path = os.path.join(model_folder_path, "config.json")
 
     time_now_str = str(int(time.time()))
     
-    path_tmp = os.path.join(root_folder_path, time_now_str)
+    path_tmp = os.path.join(model_folder_path, time_now_str)
 
     inpath = os.path.join(path_tmp, "to_predict")
     outpath = os.path.join(path_tmp, "predicted")
@@ -82,11 +99,3 @@ def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str]
     shutil.rmtree(path_tmp)
 
     return {"parsed_samples": parsed_samples, "model_info": model_info}
-
-# def sha512_foldername(conll_names, conll_set_list, parser_id, dev_set, epochs, keep_upos):
-#     input_string_ls = [str(parser_id), str(dev_set), str(epochs), str(keep_upos)]+conll_names
-#     for conll in conll_set_list:
-#         input_string_ls.append(re.sub(comment_pattern_tosub ,'', conll).strip()  )
-#     input_string = '\n\n'.join(input_string_ls)
-#     # base64.b64encode(hashlib.sha512(whateverString.encode()).digest())
-#     return hashlib.sha256(input_string.encode()).hexdigest()

@@ -1,11 +1,7 @@
-import json
 import os
-import shutil
-import time
 from pathlib import Path
-from typing import Dict, List, Literal, TypedDict
+from typing import Literal, TypedDict
 from dotenv import load_dotenv
-from celery import shared_task
 
 
 load_dotenv(dotenv_path=".flaskenv", verbose=True)
@@ -50,16 +46,16 @@ class ModelService:
         return model_info_list
 
     @staticmethod
-    def make_root_folder_path_from_model_info(model_info: ModelInfo_t):
-        root_folder_path = os.path.join(PATH_MODELS, model_info["project_name"], model_info["model_id"])
-        return root_folder_path
+    def make_model_folder_path_from_model_info(model_info: ModelInfo_t):
+        model_folder_path = os.path.join(PATH_MODELS, model_info["project_name"], model_info["model_id"])
+        return model_folder_path
     
     @staticmethod
     def get_model_state(model_info: ModelInfo_t) -> Literal["NO_EXIST", "TRAINING", "READY"]:
-        root_folder_path = ModelService.make_root_folder_path_from_model_info(model_info)
-        if not os.path.isdir(root_folder_path):
+        model_folder_path = ModelService.make_model_folder_path_from_model_info(model_info)
+        if not os.path.isdir(model_folder_path):
             return "NO_EXIST"
-        path_success_file = os.path.join(root_folder_path, "training_task_state.json")
+        path_success_file = os.path.join(model_folder_path, ".finished")
         if os.path.isfile(path_success_file):
             return "READY"
         return "TRAINING"

@@ -66,7 +66,7 @@ class ModelTrainerResource(Resource):
             "status": "success",
             "data": {
                 "model_info": model_info,
-                "task_id": result.id,
+                "parse_train_id": result.id,
             }
         }
 
@@ -74,6 +74,7 @@ class ModelTrainerResource(Resource):
 
 class ModelTrainStatus_ED(TypedDict):
     model_info: ModelInfo_t
+    parse_train_id: str
 
 
 @namespace.route("/train/status")
@@ -81,18 +82,16 @@ class ModelTrainStatusResource(Resource):
     @accepts(schema=ModelTrainStatusPostSchema, api=namespace)
     def post(self):
         data: ModelTrainStatus_ED = request.parsed_obj
-
-        model_info = data["model_info"]
-
-        model_state = ModelService.get_model_state(model_info)
-        return {
-            "status": "success",
-            "data": {
-                "model_info": model_info,
-                "task_status": model_state,
-            }
-        }
-
+        parse_train_id = data["parse_train_id"]
+        result = AsyncResult(parse_train_id)
+        if result.ready():
+            if result.successful():
+                return result.result
+            else:
+                {"status": "failure", "error": "Task resulted in a failure"}
+        else:
+            return {"status": "success", "data": None}
+        
 
 class ModelParserStartPost_ED(TypedDict):
     project_name: str
@@ -139,22 +138,24 @@ class ModelParserStatusResource(Resource):
         data: ModelParserStatusPost_ED = request.parsed_obj
         parse_task_id = data["parse_task_id"]
         result = AsyncResult(parse_task_id)
-        status = "NO_EXIST"
         if result.ready():
             if result.successful():
-                status = "READY"
+                return {
+                    "status": "success",
+                    "data": result.result,
+                }
             else:
-                status = "FAILED"
+                {"status": "failure", "error": "Task resulted in a failure"}
         else:
-            status = "PENDING"
+            return {"status": "success", "data": None}
         
-        return {
-            "status": "success",
-            "data": {
-                "task_status": status,
-                "ready": result.ready(),
-                "successful": result.successful(),
-                "failed": result.failed(),
-                "result": result.result if result.ready() else None,
-            }
-        }
+        # return {
+        #     "status": "success",
+        #     "data": {
+        #         "task_status": status,
+        #         "ready": result.ready(),
+        #         "successful": result.successful(),
+        #         "failed": result.failed(),
+        #         "result": result.result if result.ready() else None,
+        #     }
+        # }

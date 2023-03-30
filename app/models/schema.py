@@ -33,6 +33,7 @@ class ModelTrainStartPostSchema(Schema):
 
 class ModelTrainStatusPostSchema(Schema):
     model_info = fields.Nested(ModelInfoSchema, attribute="model_info", required=True)
+    parse_train_id = fields.String(attribute="parse_train_id", required=True)
 
 
 class ModelParseStartPostSchema(Schema):
