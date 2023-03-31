@@ -59,14 +59,14 @@ class ModelTrainerResource(Resource):
                     "status": "failure",
                     "error": "Base Model doesn't exist",
                 }
-
+        print("KK before celery")
         result = celery_tasks.train_model.delay(model_info, data["train_samples"], data["max_epoch"], data["base_model"])
         
         return {
             "status": "success",
             "data": {
                 "model_info": model_info,
-                "parse_train_id": result.id,
+                "train_task_id": result.id,
             }
         }
 
@@ -74,16 +74,23 @@ class ModelTrainerResource(Resource):
 
 class ModelTrainStatus_ED(TypedDict):
     model_info: ModelInfo_t
-    parse_train_id: str
+    train_task_id: str
 
 
 @namespace.route("/train/status")
 class ModelTrainStatusResource(Resource):
     @accepts(schema=ModelTrainStatusPostSchema, api=namespace)
     def post(self):
+        print("KK AEAE")
         data: ModelTrainStatus_ED = request.parsed_obj
-        parse_train_id = data["parse_train_id"]
-        result = AsyncResult(parse_train_id)
+        train_task_id = data["train_task_id"]
+        result = AsyncResult(train_task_id)
+        print("KK result", result)
+        print("KK dir", dir(result))
+        print("KK queue", result.queue)
+        print("KK info", result.info)
+        print("KK status", result.status)
+        print("KK ready", result.ready)
         if result.ready():
             if result.successful():
                 return result.result
@@ -113,7 +120,7 @@ class ModelParserStartResource(Resource):
                 "status": "failure",
                 "error": "Model not ready yet",
             }
-
+        print("KK before CELERY")
         result = celery_tasks.parse_sentences.delay(model_info, data["to_parse_samples"])
         
         return {
@@ -140,22 +147,9 @@ class ModelParserStatusResource(Resource):
         result = AsyncResult(parse_task_id)
         if result.ready():
             if result.successful():
-                return {
-                    "status": "success",
-                    "data": result.result,
-                }
+                return result.result
             else:
                 {"status": "failure", "error": "Task resulted in a failure"}
         else:
             return {"status": "success", "data": None}
         
-        # return {
-        #     "status": "success",
-        #     "data": {
-        #         "task_status": status,
-        #         "ready": result.ready(),
-        #         "successful": result.successful(),
-        #         "failed": result.failed(),
-        #         "result": result.result if result.ready() else None,
-        #     }
-        # }

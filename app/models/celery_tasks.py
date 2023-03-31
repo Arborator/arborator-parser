@@ -98,4 +98,7 @@ def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str]
             parsed_samples[conll_file] = infile.read()
     shutil.rmtree(path_tmp)
 
-    return {"parsed_samples": parsed_samples, "model_info": model_info}
+    return {
+        "status": "success", 
+        "data": {"parsed_samples": parsed_samples, "model_info": model_info},
+        }
