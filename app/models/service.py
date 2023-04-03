@@ -1,3 +1,4 @@
+import json
 import os
 from pathlib import Path
 from typing import Literal, TypedDict
@@ -37,12 +38,23 @@ class ModelService:
             models = os.listdir(path_project)
             for model_id in models:
                 path_model = os.path.join(path_project, model_id)
-                path_success_file = os.path.join(path_model, "training_task_state.json")
+                path_success_file = os.path.join(path_model, ".finished")
+                path_best_epoch_scores = os.path.join(path_model, "scores.best.json")
+
                 if os.path.isfile(path_success_file):
-                    model_info_list.append({
+                    with open(path_best_epoch_scores) as infile:
+                        scores_best_epoch = json.loads(infile.read())
+                    
+                    model_info = {
                         "model_id": model_id,
                         "project_name": project_name,
-                    })
+                    }
+                    model_info_list.append(
+                        {
+                            "model_info": model_info,
+                            "scores_best": scores_best_epoch
+                        }
+                        )
         return model_info_list
 
     @staticmethod

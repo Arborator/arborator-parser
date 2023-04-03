@@ -75,6 +75,7 @@ journalctl --user-unit=arborator-parser-celery.service -f
 - socket : arborator-parser.sock
 
 ## Development version
+/!\ Don't install the dev server on the same user as the prod server. Indeed, the dev and prod version of celery will collide.
 - PORT : 8001
 - Path : /home/arboratorgrew/arborator-parser_dev/wsgi.py
 - PATH_MODELS : /home/arboratorgrew/arborator-parser_models_dev/

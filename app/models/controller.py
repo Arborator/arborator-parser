@@ -1,5 +1,6 @@
 import time
 from typing import Dict, List, TypedDict, Union
+from app.utils import get_readable_current_time_paris_ms
 
 from flask import request
 from flask_restx import Api, Resource, Namespace
@@ -42,7 +43,7 @@ class ModelTrainerResource(Resource):
         
         model_info = {
             "project_name": data["project_name"],
-            "model_id": str(int(time.time())),
+            "model_id": get_readable_current_time_paris_ms(),
         }
 
         model_state = ModelService.get_model_state(model_info) 
@@ -85,12 +86,12 @@ class ModelTrainStatusResource(Resource):
         data: ModelTrainStatus_ED = request.parsed_obj
         train_task_id = data["train_task_id"]
         result = AsyncResult(train_task_id)
-        print("KK result", result)
-        print("KK dir", dir(result))
-        print("KK queue", result.queue)
-        print("KK info", result.info)
-        print("KK status", result.status)
-        print("KK ready", result.ready)
+        # print("KK result", result)
+        # print("KK dir", dir(result))
+        # print("KK queue", result.queue)
+        # print("KK info", result.info)
+        # print("KK status", result.status)
+        # print("KK ready", result.ready)
         if result.ready():
             if result.successful():
                 return result.result
