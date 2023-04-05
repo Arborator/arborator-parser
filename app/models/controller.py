@@ -60,7 +60,6 @@ class ModelTrainerResource(Resource):
                     "status": "failure",
                     "error": "Base Model doesn't exist",
                 }
-        print("KK before celery")
         result = celery_tasks.train_model.delay(model_info, data["train_samples"], data["max_epoch"], data["base_model"])
         
         return {
@@ -82,23 +81,16 @@ class ModelTrainStatus_ED(TypedDict):
 class ModelTrainStatusResource(Resource):
     @accepts(schema=ModelTrainStatusPostSchema, api=namespace)
     def post(self):
-        print("KK AEAE")
         data: ModelTrainStatus_ED = request.parsed_obj
         train_task_id = data["train_task_id"]
         result = AsyncResult(train_task_id)
-        # print("KK result", result)
-        # print("KK dir", dir(result))
-        # print("KK queue", result.queue)
-        # print("KK info", result.info)
-        # print("KK status", result.status)
-        # print("KK ready", result.ready)
         if result.ready():
             if result.successful():
                 return result.result
             else:
                 {"status": "failure", "error": "Task resulted in a failure"}
         else:
-            return {"status": "success", "data": None}
+            return {"status": "success", "data": {"ready": False}}
         
 
 class ModelParserStartPost_ED(TypedDict):
@@ -152,5 +144,5 @@ class ModelParserStatusResource(Resource):
             else:
                 {"status": "failure", "error": "Task resulted in a failure"}
         else:
-            return {"status": "success", "data": None}
+            return {"status": "success", "data": {"ready": False}}
         

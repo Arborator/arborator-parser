@@ -55,6 +55,7 @@ def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_e
         scores_best = json.loads(infile.read())
 
     return {"status": "success", "data": {
+        "ready": True,
         "model_info": model_info,
         "scores_history": scores_history,
         "scores_best": scores_best,
@@ -100,5 +101,9 @@ def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str]
 
     return {
         "status": "success", 
-        "data": {"parsed_samples": parsed_samples, "model_info": model_info},
+        "data": {
+            "ready": True,
+            "parsed_samples": parsed_samples, 
+            "model_info": model_info
+            },
         }
