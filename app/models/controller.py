@@ -1,3 +1,5 @@
+import json
+import os
 import time
 from typing import Dict, List, TypedDict, Union
 from app.utils import get_readable_current_time_paris_ms
@@ -90,7 +92,24 @@ class ModelTrainStatusResource(Resource):
             else:
                 {"status": "failure", "error": "Task resulted in a failure"}
         else:
-            return {"status": "success", "data": {"ready": False}}
+            model_folder_path = ModelService.make_model_folder_path_from_model_info(data["model_info"])
+            path_history = os.path.join(model_folder_path, "scores.history.json")
+            if os.path.isfile(path_history):
+                with open(path_history, "r") as infile:
+                    scores_history = json.loads(infile.read())
+            else:
+                scores_history = None
+
+            path_best = os.path.join(model_folder_path, "scores.best.json")
+            if os.path.isfile(path_history):
+                with open(path_best, "r") as infile:
+                    scores_best = json.loads(infile.read())
+            else:
+                scores_best = None
+            return {"status": "success", "data": {"ready": False,
+                                                    "scores_history": scores_history,
+                                                    "scores_best": scores_best,
+                                                  }}
         
 
 class ModelParserStartPost_ED(TypedDict):
@@ -113,7 +132,6 @@ class ModelParserStartResource(Resource):
                 "status": "failure",
                 "error": "Model not ready yet",
             }
-        print("KK before CELERY")
         result = celery_tasks.parse_sentences.delay(model_info, data["to_parse_samples"])
         
         return {

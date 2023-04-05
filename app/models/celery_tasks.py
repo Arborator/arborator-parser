@@ -37,6 +37,7 @@ def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_e
     --gpu_ids 0 \
     --conf_pretrain {base_model_config} \
     --overwrite_pretrain_classifiers \
+    --patience 10 \
     --max_epoch {max_epoch}") 
 
     path_success_file = os.path.join(model_folder_path, ".finished")
