@@ -38,12 +38,12 @@ class ModelTrainStatusPostSchema(Schema):
 
 class ParsingSettingsSchema(Schema):
     """ParsingSettings schema"""
-    keep_upos = fields.String(attribute="keep_upos", default="NONE")
-    keep_xpos = fields.String(attribute="keep_xpos", default="NONE")
-    keep_lemmas = fields.String(attribute="keep_lemmas", default="NONE")
-    keep_deprels = fields.String(attribute="keep_deprels", default="NONE")
-    keep_heads = fields.String(attribute="keep_heads", default="NONE")
-    keep_feats = fields.String(attribute="keep_feats", default="NONE")
+    keep_upos = fields.String(attribute="keep_upos", load_default="NONE")
+    keep_xpos = fields.String(attribute="keep_xpos", load_default="NONE")
+    keep_lemmas = fields.String(attribute="keep_lemmas", load_default="NONE")
+    keep_deprels = fields.String(attribute="keep_deprels", load_default="NONE")
+    keep_heads = fields.String(attribute="keep_heads", load_default="NONE")
+    keep_feats = fields.String(attribute="keep_feats", load_default="NONE")
 
 class ModelParseStartPostSchema(Schema):
     "ModelParseStartPost Schema"
