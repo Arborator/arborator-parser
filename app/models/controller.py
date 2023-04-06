@@ -1,15 +1,15 @@
 import json
 import os
-import time
-from typing import Dict, List, TypedDict, Union
+from typing import Dict, TypedDict, Union
 from app.utils import get_readable_current_time_paris_ms
 
 from flask import request
-from flask_restx import Api, Resource, Namespace
+from flask_restx import Resource, Namespace
 from flask_accepts.decorators.decorators import responds, accepts
 
 from .schema import ModelTrainStartPostSchema, ModelTrainStatusPostSchema, ModelParseStartPostSchema, ModelParseStatusPostSchema
 from .service import ModelService
+from .interface import ParsingSettings_t
 
 from . import celery_tasks
 
@@ -116,6 +116,7 @@ class ModelParserStartPost_ED(TypedDict):
     project_name: str
     model_info: ModelInfo_t
     to_parse_samples: Dict[str, str]
+    parsing_settings: ParsingSettings_t
 
 @namespace.route("/parse/start")
 class ModelParserStartResource(Resource):
@@ -132,7 +133,7 @@ class ModelParserStartResource(Resource):
                 "status": "failure",
                 "error": "Model not ready yet",
             }
-        result = celery_tasks.parse_sentences.delay(model_info, data["to_parse_samples"])
+        result = celery_tasks.parse_sentences.delay(model_info, data["to_parse_samples"], data["parsing_settings"])
         
         return {
             "status": "success",

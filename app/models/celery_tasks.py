@@ -2,9 +2,11 @@ import json
 import os
 import shutil
 import time
-from typing import Dict, List, Union
+from typing import Dict, List, Literal, TypedDict, Union
 from celery import shared_task
 from .service import ModelInfo_t, ModelService, PATH_BERTFORDEPREL_VENV, PATH_BERTFORDEPREL_SCRIPT
+from .interface import ParsingSettings_t
+
 
 DEFAULT_BASE_MODEL_CONFIG_PATH = "/models/SUD_all_1/config.json"
 
@@ -63,9 +65,8 @@ def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_e
     }}
 
 
-
 @shared_task()
-def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str]) -> bool:
+def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str], parsing_settings: ParsingSettings_t) -> bool:
     model_folder_path = ModelService.make_model_folder_path_from_model_info(model_info)
 
     model_config_path = os.path.join(model_folder_path, "config.json")
@@ -91,6 +92,12 @@ def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str]
     --outpath \"{outpath}\" \
     --overwrite \
     --batch_size 32 \
+    --keep_upos \"{parsing_settings['keep_upos']}\" \
+    --keep_xpos \"{parsing_settings['keep_xpos']}\" \
+    --keep_lemmas \"{parsing_settings['keep_lemmas']}\" \
+    --keep_deprels \"{parsing_settings['keep_deprels']}\" \
+    --keep_heads \"{parsing_settings['keep_heads']}\" \
+    --keep_feats \"{parsing_settings['keep_feats']}\" \
     --gpu_ids 0")
 
     parsed_samples = {}
