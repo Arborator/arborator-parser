@@ -89,7 +89,7 @@ First check all the logs mentioned above
 
 Then, check healthyness : On the server, do the following curl :
 ```bash
-curl http://127.0.0.1:8088/parser/healthy
+curl http://127.0.0.1:8002/parser/healthy
 ```
 
 ## API doc
