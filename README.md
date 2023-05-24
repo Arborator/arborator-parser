@@ -95,3 +95,14 @@ curl http://127.0.0.1:8002/parser/healthy
 ## API doc
 If port tunneling to server, you can access to the doc by going on the URL : https://127.0.0.1:8088/parser/doc
 
+
+## Cron
+To be sure that the server is always running, we added a cron
+### edit the cron schedule
+```
+crontab -e
+```
+add 
+```
+* * * * * bash /home/arboratorgrew/arborator-parser/cron_check_server.sh  >> /home/arboratorgrew/logfile.log 2>&1
+```
