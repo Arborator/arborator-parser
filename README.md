@@ -96,13 +96,37 @@ curl http://127.0.0.1:8002/parser/healthy
 If port tunneling to server, you can access to the doc by going on the URL : https://127.0.0.1:8088/parser/doc
 
 
-## Cron
-To be sure that the server is always running, we added a cron
-### edit the cron schedule
+## Checkèserver
+To be sure that the server is always running, we added systemctl timer
+### check the `check_server.sh` script is correct
+it should check the server healthy endpoint, and restart the arborator-parser.service and arborator-parser-celery.service
+
+Make sure the script is executable with
 ```
-crontab -e
+chmod +x /path/to/your/script.sh
 ```
-add 
+
+### add a service in ~/.config/systemd/user
+template of the service is in this repo under the name check_server.service. It should point to the correct check_server.sh script
+
+### add a timer in ~/.config/systemd/user
+template of the timer is in this repo under the name check_server.service. It should point to the correct check_server.service
+
+### enable the service and the timer
 ```
-* * * * * bash /home/arboratorgrew/arborator-parser/cron_check_server.sh  >> /home/arboratorgrew/logfile.log 2>&1
+systemctl --user daemon-reload
+systemctl --user enable --now check_server.timer
+```
+
+### monitoring of the check_server timers/services
+#### check status
+```
+systemctl --user status check_server.service
+systemctl --user status check_server.timer
+```
+
+#### check logs
+```
+journalctl --user-unit check_server.service
+journalctl --user-unit check_server.timer
 ```

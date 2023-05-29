@@ -1,0 +1,9 @@
+[Unit]
+Description=Run Check Server Health every 1 minutes
+
+[Timer]
+OnUnitActiveSec=1m
+Unit=check_server.service
+
+[Install]
+WantedBy=default.target
