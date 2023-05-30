@@ -2,4 +2,4 @@
 Description=Check Server Health
 
 [Service]
-ExecStart=/home/arboratorgrew/arborator-parser/check_if_server_is_functionning.sh
+ExecStart=/home/arboratorgrew/arborator-parser/check_server.sh
