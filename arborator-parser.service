@@ -6,7 +6,9 @@ After=network.target
 WorkingDirectory=/home/arboratorgrew/arborator-parser
 Environment="PATH=/home/arboratorgrew/miniconda3/envs/parser-venv/bin/uwsgi"
 ExecStart=/home/arboratorgrew/miniconda3/envs/parser-venv/bin/uwsgi --ini arborator-parser.ini
-Restart=on-failure
+Restart=always
+RestartSec=5
+StartLimitBurst=3
 
 [Install]
 WantedBy=multi-user.target

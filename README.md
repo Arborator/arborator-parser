@@ -23,7 +23,7 @@ python3.8 -m venv parser-venv
 - Create service for user arboratorgrew (can't use system-wise service as arboratorgrew is not root). The template of the service is at the root of this repo.
 
 ```bash
-systemctl --user edit arborator-parser.service --full --force
+ln arborator-parser.service ~/.config/systemd/user/
 systemctl --user enable arborator-parser.service
 systemctl --user start arborator-parser.service
 ```
@@ -31,7 +31,7 @@ systemctl --user start arborator-parser.service
 - Create service for user Celery app (can't use system-wise service as arboratorgrew is not root). The template of the service is at the root of this repo.
 
 ```bash
-systemctl --user edit arborator-parser-celery.service --full --force
+ln arborator-parser-celery.service ~/.config/systemd/user/
 systemctl --user enable arborator-parser-celery.service
 systemctl --user start arborator-parser-celery.service
 ```
@@ -116,6 +116,15 @@ template of the timer is in this repo under the name check_server.service. It sh
 ```
 systemctl --user daemon-reload
 systemctl --user enable --now check_server.timer
+```
+
+### user services persistency
+As we use user services, when the user session scope terminate (can be minutes, hours or days after the user leave the session), the system will stop all of the services of this user.
+
+To prevent this, we set 
+
+```
+sudo loginctl enable-linger arboratorgrew
 ```
 
 ### monitoring of the check_server timers/services
