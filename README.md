@@ -62,9 +62,12 @@ systemctl --user status arborator-parser-celery.service
 ```
 
 Logs of arborator-parser (from root of this repo)
-```
+```bash
+# live tail of the flask logs
 tail -f ./logs/arborator-parser.log
-journalctl --user-unit=arborator-parser-celery.service -f
+
+# live tail of celery service logs, added to the previous 100 lines
+journalctl --user-unit=arborator-parser-celery.service -f -n 100
 ```
 
 # Production version
