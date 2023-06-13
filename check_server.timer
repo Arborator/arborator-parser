@@ -1,8 +1,9 @@
 [Unit]
-Description=Run Check Server Health every 1 minutes
+Description=Run Check Server Health every 10 minutes
 
 [Timer]
-OnUnitActiveSec=1m
+OnCalendar=*:0/10
+# for every minutes : =*:*
 Unit=check_server.service
 
 [Install]
