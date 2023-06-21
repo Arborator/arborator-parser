@@ -26,21 +26,25 @@ def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_e
         with open(sample_path, "w") as outfile:
             outfile.write(sample_content)
 
-    if base_model:
-        base_model_folder_path = ModelService.make_model_folder_path_from_model_info(base_model)
-        base_model_config = os.path.join(base_model_folder_path, "config.json")
-    else:
-        base_model_config = DEFAULT_BASE_MODEL_CONFIG_PATH
-
-    os.system(f"{PATH_BERTFORDEPREL_VENV} {PATH_BERTFORDEPREL_SCRIPT} train \
+    TRAINING_CMD = f"{PATH_BERTFORDEPREL_VENV} {PATH_BERTFORDEPREL_SCRIPT} train \
     --model_folder_path \"{model_folder_path}\" \
     --ftrain \"{train_files_folder_path}\" \
     --batch_size 16 \
     --gpu_ids 0 \
-    --conf_pretrain {base_model_config} \
-    --overwrite_pretrain_classifiers \
     --patience 10 \
-    --max_epoch {max_epoch}") 
+    --max_epoch {max_epoch}"
+    
+
+    if base_model:
+        # user selected a pretrained model
+        base_model_folder_path = ModelService.make_model_folder_path_from_model_info(base_model)
+        base_model_config = os.path.join(base_model_folder_path, "config.json")
+        TRAINING_CMD += f"\
+        --conf_pretrain {base_model_config} \
+        --overwrite_pretrain_classifiers"
+
+    print("The training command is : $ ", TRAINING_CMD)
+    os.system(TRAINING_CMD) 
 
     path_success_file = os.path.join(model_folder_path, ".finished")
     if not os.path.isfile(path_success_file):

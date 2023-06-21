@@ -1,5 +1,5 @@
 from marshmallow import fields, Schema, ValidationError
-from conllup.conllup import sentenceConllToJson
+from conllup.conllup import findConllFormatErrors
 
 
 
@@ -14,12 +14,9 @@ class ConllSampleField(fields.Field):
     def _deserialize(self, value, attr, data, **kwargs):
         if type(value) != str:
             raise ValidationError(f'Not a string : {value}')
-        for sentence_conll in value.strip().rstrip().split("\n\n"):
-            try: 
-                sentenceConllToJson(sentence_conll)
-            except:
-                print("ConllValidationError : ", sentence_conll)
-                raise ValidationError(f'Invalid sentence conll found:\n{sentence_conll}')
+        potential_errors = findConllFormatErrors(value)
+        if len(potential_errors):
+            raise ValidationError("\n".join(potential_errors))
         return value
 
 

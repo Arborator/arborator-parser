@@ -7,6 +7,8 @@ from flask import request
 from flask_restx import Resource, Namespace
 from flask_accepts.decorators.decorators import responds, accepts
 
+from conllup.conllup import findConllFormatErrors
+
 from .schema import ModelTrainStartPostSchema, ModelTrainStatusPostSchema, ModelParseStartPostSchema, ModelParseStatusPostSchema
 from .service import ModelService
 from .interface import ParsingSettings_t
