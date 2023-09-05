@@ -27,7 +27,7 @@ def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_e
             outfile.write(sample_content)
 
     TRAINING_CMD = f"{PATH_BERTFORDEPREL_VENV} {PATH_BERTFORDEPREL_SCRIPT} train \
-    --model_folder_path \"{model_folder_path}\" \
+    --new_model_path \"{model_folder_path}\" \
     --ftrain \"{train_files_folder_path}\" \
     --batch_size 16 \
     --gpu_ids 0 \
@@ -38,9 +38,8 @@ def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_e
     if base_model:
         # user selected a pretrained model
         base_model_folder_path = ModelService.make_model_folder_path_from_model_info(base_model)
-        base_model_config = os.path.join(base_model_folder_path, "config.json")
         TRAINING_CMD += f"\
-        --conf_pretrain {base_model_config} \
+        --pretrained_path {base_model_folder_path} \
         --overwrite_pretrain_classifiers"
 
     print("The training command is : $ ", TRAINING_CMD)
@@ -73,8 +72,6 @@ def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_e
 def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str], parsing_settings: ParsingSettings_t) -> bool:
     model_folder_path = ModelService.make_model_folder_path_from_model_info(model_info)
 
-    model_config_path = os.path.join(model_folder_path, "config.json")
-
     time_now_str = str(int(time.time()))
     
     path_tmp = os.path.join(model_folder_path, time_now_str)
@@ -91,7 +88,7 @@ def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str]
             outfile.write(conll_content)
 
     os.system(f"{PATH_BERTFORDEPREL_VENV} {PATH_BERTFORDEPREL_SCRIPT} predict \
-    --conf \"{model_config_path}\" \
+    --model_path \"{model_folder_path}\" \
     --inpath \"{inpath}\" \
     --outpath \"{outpath}\" \
     --overwrite \
