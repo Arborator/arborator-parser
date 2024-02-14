@@ -32,6 +32,7 @@ def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_e
     --batch_size 16 \
     --gpu_ids 0 \
     --patience 10 \
+    --relevant_miscs CpdPos ExtPos \
     --max_epoch {max_epoch}"
     
 
@@ -42,7 +43,7 @@ def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_e
         --pretrained_path {base_model_folder_path} \
         --overwrite_pretrain_classifiers"
 
-    print("The training command is : $ ", TRAINING_CMD)
+    print("The training command is : $\n", TRAINING_CMD)
     os.system(TRAINING_CMD) 
 
     path_success_file = os.path.join(model_folder_path, ".finished")
@@ -87,7 +88,7 @@ def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str]
         with open(path_to_write_conll, "w") as outfile:
             outfile.write(conll_content)
 
-    os.system(f"{PATH_BERTFORDEPREL_VENV} {PATH_BERTFORDEPREL_SCRIPT} predict \
+    command = f"{PATH_BERTFORDEPREL_VENV} {PATH_BERTFORDEPREL_SCRIPT} predict \
     --model_path \"{model_folder_path}\" \
     --inpath \"{inpath}\" \
     --outpath \"{outpath}\" \
@@ -99,7 +100,9 @@ def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str]
     --keep_deprels \"{parsing_settings['keep_deprels']}\" \
     --keep_heads \"{parsing_settings['keep_heads']}\" \
     --keep_feats \"{parsing_settings['keep_feats']}\" \
-    --gpu_ids 0")
+    --gpu_ids 0"
+    print("RUNNING COMMAND:\n$", command)
+    os.system(command)
 
     parsed_samples = {}
     for conll_file, _ in to_parse_samples.items():
