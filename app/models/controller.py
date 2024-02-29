@@ -31,6 +31,23 @@ class ModelsResource(Resource):
         return {"status": "success", "data": ModelService.available_models()}
 
 
+@namespace.route("/list/<string:project_name>/<string:model_id>")
+class ModelIdResource(Resource):
+    def delete(self, project_name: str, model_id: str):
+        model_info = {
+            "project_name": project_name,
+            "model_id": model_id
+        }
+        model_state = ModelService.get_model_state(model_info)
+        if model_state == 'NO_EXIST': 
+            return {
+                "status": "failure",
+                "error": "The model does not exist in the parser server"
+            }
+        else: 
+            return ModelService.remove_model(model_info)
+  
+  
 # ED = Expected Definition
 class ModelTrainerPost_ED(TypedDict):
     project_name: str

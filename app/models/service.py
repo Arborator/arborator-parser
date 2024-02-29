@@ -1,8 +1,10 @@
 import json
 import os
+import shutil
 from pathlib import Path
 from typing import Literal, TypedDict
 from dotenv import load_dotenv
+
 
 
 load_dotenv(dotenv_path=".flaskenv", verbose=True)
@@ -71,4 +73,14 @@ class ModelService:
         if os.path.isfile(path_success_file):
             return "READY"
         return "TRAINING"
-
+    
+    @staticmethod
+    def remove_model(model_info: ModelInfo_t): 
+        model_folder_path = ModelService.make_model_folder_path_from_model_info(model_info)
+        try: 
+            shutil.rmtree(model_folder_path, ignore_errors=False)
+            return { "status": "success" }
+        except Exception as e:
+           return { "status": "failure", "error": "Error while removing pretrained model {}".format(str(e)) } 
+            
+            

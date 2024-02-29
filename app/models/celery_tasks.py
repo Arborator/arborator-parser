@@ -26,6 +26,7 @@ def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_e
         with open(sample_path, "w") as outfile:
             outfile.write(sample_content)
 
+    # TODO pour l'interface des modeles dans frontend :
     TRAINING_CMD = f"{PATH_BERTFORDEPREL_VENV} {PATH_BERTFORDEPREL_SCRIPT} train \
     --new_model_path \"{model_folder_path}\" \
     --ftrain \"{train_files_folder_path}\" \
@@ -87,7 +88,7 @@ def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str]
         path_to_write_conll = os.path.join(inpath, conll_name + ".conllu")
         with open(path_to_write_conll, "w") as outfile:
             outfile.write(conll_content)
-
+    # TODO pour l'interface des modeles dans fronted : keep_XXXX is for keeping or not the feature when infering (3 choices)
     command = f"{PATH_BERTFORDEPREL_VENV} {PATH_BERTFORDEPREL_SCRIPT} predict \
     --model_path \"{model_folder_path}\" \
     --inpath \"{inpath}\" \
