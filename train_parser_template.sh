@@ -2,7 +2,7 @@
 PYTHON_PATH=/home/arboratorgrew/arborator-parser/BertForDeprel/.venv/bin/python
 TRAINER_PATH=/home/arboratorgrew/arborator-parser/BertForDeprel/BertForDeprel/run.py 
 
-MODELS_PATH=/home/arboratorgrew/arborator-parser_models_prod/
+MODELS_PATH=/home/arboratorgrew/arborator-parser_models_todelete/
 
 DATA_ALL_FOLDER_PATH=/home/arboratorgrew/SUD_all_treebanks_utilities/data/all_together/
 DATA_PER_LANGUAGES_FOLDERS_PATH=/home/arboratorgrew/SUD_all_treebanks_utilities/data/gold/

@@ -1,5 +1,5 @@
 from app import create_app, celery_create_app
-
+print('starting server')
 
 app = create_app()
 

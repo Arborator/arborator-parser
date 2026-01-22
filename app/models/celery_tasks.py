@@ -30,7 +30,7 @@ def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_e
     TRAINING_CMD = f"{PATH_BERTFORDEPREL_VENV} {PATH_BERTFORDEPREL_SCRIPT} train \
     --new_model_path \"{model_folder_path}\" \
     --ftrain \"{train_files_folder_path}\" \
-    --batch_size 16 \
+    --batch_size 8 \
     --gpu_ids 0 \
     --patience 10 \
     --relevant_miscs CpdPos ExtPos \
@@ -49,10 +49,11 @@ def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_e
 
     path_success_file = os.path.join(model_folder_path, ".finished")
     if not os.path.isfile(path_success_file):
-        error_message = f"BertForDeprel/run.py didn't finish training model correctly. Search ERROR_101 in celery logs"
+        error_message_celery = f"BertForDeprel/run.py didn't finish training model correctly. Search ERROR_101 in celery logs"
+        error_message = f"Didn't finish training model correctly, please contact the admins"
         print(error_message)
         shutil.rmtree(model_folder_path)
-        return {"status": "failure", "error": error_message}
+        return {"status": "failure", "error_celery": error_message_celery, "error": error_message }
 
     path_history = os.path.join(model_folder_path, "scores.history.json")
     with open(path_history, "r") as infile:
@@ -73,6 +74,10 @@ def train_model(model_info: Dict[str, str], train_samples: Dict[str, str], max_e
 @shared_task()
 def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str], parsing_settings: ParsingSettings_t) -> bool:
     model_folder_path = ModelService.make_model_folder_path_from_model_info(model_info)
+    # debug 
+    print(f"DEBUG: model_info = {model_info}")
+    print(f"DEBUG: model_folder_path = {model_folder_path}")
+    print(f"DEBUG: model_folder_path exists? {os.path.isdir(model_folder_path)}")
 
     time_now_str = str(int(time.time()))
     
@@ -94,7 +99,7 @@ def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str]
     --inpath \"{inpath}\" \
     --outpath \"{outpath}\" \
     --overwrite \
-    --batch_size 32 \
+    --batch_size 8 \
     --keep_upos \"{parsing_settings['keep_upos']}\" \
     --keep_xpos \"{parsing_settings['keep_xpos']}\" \
     --keep_lemmas \"{parsing_settings['keep_lemmas']}\" \
@@ -108,8 +113,13 @@ def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str]
     parsed_samples = {}
     for conll_file, _ in to_parse_samples.items():
         path_to_read_conll = os.path.join(outpath, conll_file + ".conllu")
-        with open(path_to_read_conll, "r") as infile:
-            parsed_samples[conll_file] = infile.read()
+        try:
+            with open(path_to_read_conll, "r") as infile:
+                parsed_samples[conll_file] = infile.read()
+        except:
+            error_message = f"Didn't finish parsing data correctly, please contact the admins"
+            return { "status": "failure", "error": error_message }
+        
     shutil.rmtree(path_tmp)
 
     return {

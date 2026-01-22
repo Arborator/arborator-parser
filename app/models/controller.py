@@ -10,7 +10,7 @@ from flask_accepts.decorators.decorators import responds, accepts
 from conllup.conllup import findConllFormatErrors
 
 from .schema import ModelTrainStartPostSchema, ModelTrainStatusPostSchema, ModelParseStartPostSchema, ModelParseStatusPostSchema
-from .service import ModelService
+from .service import ModelService, PATH_MODELS_QUICK_PARSER
 from .interface import ParsingSettings_t
 
 from . import celery_tasks
@@ -22,13 +22,17 @@ class ModelInfo_t(TypedDict):
 
 namespace = Namespace("models", description="Create, Access, List and Delete Models")
 
-
 @namespace.route("/list")
 class ModelsResource(Resource):
     "Models"
-    # @responds(schema=ModelSchema(many=True), api=namespace)
     def get(self):
-        return {"status": "success", "data": ModelService.available_models()}
+        application_models = request.headers.get("X-Application-Models", "")
+        if application_models:
+            models_list = ModelService.available_models_quick_parser(PATH_MODELS_QUICK_PARSER)
+            print ("PATH_MODELS_QUICK_PARSER", PATH_MODELS_QUICK_PARSER)
+            print ("models_list = ", models_list)
+            return {"status": "success", "data": models_list }
+        return {"status": "success", "data": ModelService.available_models(None)}
 
 
 @namespace.route("/list/<string:project_name>/<string:model_id>")
@@ -61,11 +65,11 @@ class ModelTrainerResource(Resource):
     @accepts(schema=ModelTrainStartPostSchema, api=namespace)
     def post(self):
         data: ModelTrainerPost_ED = request.parsed_obj
-        
         model_info = {
             "project_name": data["project_name"],
             "model_id": get_readable_current_time_paris_ms(),
         }
+
 
         model_state = ModelService.get_model_state(model_info) 
         if model_state != "NO_EXIST":
@@ -82,7 +86,6 @@ class ModelTrainerResource(Resource):
                     "error": "Base Model doesn't exist",
                 }
         result = celery_tasks.train_model.delay(model_info, data["train_samples"], data["max_epoch"], data["base_model"])
-        
         return {
             "status": "success",
             "data": {
@@ -180,7 +183,6 @@ class ModelParserStatusResource(Resource):
             if result.successful():
                 return result.result
             else:
-                {"status": "failure", "error": "Task resulted in a failure"}
+                return {"status": "failure", "error": "Task resulted in a failure"}
         else:
             return {"status": "success", "data": {"ready": False}}
-        
