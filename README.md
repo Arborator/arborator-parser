@@ -1,5 +1,29 @@
 # arborator-parser
 
+The backend parsing engine for [ArboratorGrew](https://arboratorgrew.elizia.net). A Flask + Celery REST API that wraps [BertForDeprel](https://github.com/kirianguiller/BertForDeprel) for dependency parsing.
+
+## Architecture
+
+```
+Quick_parsing (Flask frontend)  ──HTTP──▶  arborator-parser (Flask + Celery backend)  ──▶  BertForDeprel
+   - text tokenization                      - model management on disk
+   - file upload UI                         - Celery task queue (train / parse)
+   - proxies requests to backend            - writes CoNLL-U, invokes BertForDeprel
+```
+
+- **[Quick_parsing](https://github.com/Arborator/Quick_parsing)** is the user-facing frontend. It tokenizes text into CoNLL-U format and proxies all parsing/training requests via HTTP to this backend. It does not modify CoNLL-U content.
+- **arborator-parser** (this repo) is the backend. It manages model files, runs BertForDeprel training and inference as Celery tasks, and returns parsed CoNLL-U.
+- The frontend sends `X-Application-Models: quick_parser` in request headers to select the flat model store used by Quick_parsing.
+
+### Gloss parser support
+
+When a model's `project_name` starts with `gloss_`, the `parse_sentences` Celery task automatically performs a Gloss↔FORM swap:
+
+1. **Pre-processing:** For each token with `Gloss=X` in MISC, the original FORM is saved as `OrigForm=` in MISC and replaced with the gloss value. This lets BertForDeprel parse using English glosses instead of surface forms.
+2. **Post-processing:** After parsing, the original FORM is restored from `OrigForm=` and the gloss is placed back in `Gloss=` in MISC. All predicted annotations (HEAD, DEPREL, UPOS, etc.) are preserved.
+
+This is implemented in `app/utils_gloss.py` and called from `app/models/celery_tasks.py`.
+
 ## Set in production
 
 ### Cloning the project
