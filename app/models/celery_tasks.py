@@ -6,6 +6,7 @@ from typing import Dict, List, Literal, TypedDict, Union
 from celery import shared_task
 from .service import ModelInfo_t, ModelService, PATH_BERTFORDEPREL_VENV, PATH_BERTFORDEPREL_SCRIPT
 from .interface import ParsingSettings_t
+from ..utils_gloss import swap_gloss_to_form, swap_form_to_gloss, is_gloss_model
 
 
 DEFAULT_BASE_MODEL_CONFIG_PATH = "/models/SUD_all_1/config.json"
@@ -93,6 +94,18 @@ def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str]
         path_to_write_conll = os.path.join(inpath, conll_name + ".conllu")
         with open(path_to_write_conll, "w") as outfile:
             outfile.write(conll_content)
+
+    # Gloss model preprocessing: swap Gloss→FORM
+    gloss_mode = is_gloss_model(model_info.get("project_name", ""))
+    if gloss_mode:
+        for fname in os.listdir(inpath):
+            if fname.endswith(".conllu"):
+                fpath = os.path.join(inpath, fname)
+                with open(fpath, "r") as f:
+                    content = f.read()
+                with open(fpath, "w") as f:
+                    f.write(swap_gloss_to_form(content))
+
     # TODO pour l'interface des modeles dans fronted : keep_XXXX is for keeping or not the feature when infering (3 choices)
     command = f"{PATH_BERTFORDEPREL_VENV} {PATH_BERTFORDEPREL_SCRIPT} predict \
     --model_path \"{model_folder_path}\" \
@@ -119,7 +132,12 @@ def parse_sentences(model_info: Dict[str, str], to_parse_samples: Dict[str, str]
         except:
             error_message = f"Didn't finish parsing data correctly, please contact the admins"
             return { "status": "failure", "error": error_message }
-        
+
+    # Gloss model postprocessing: restore original FORM, put Gloss back in MISC
+    if gloss_mode:
+        for conll_file in parsed_samples:
+            parsed_samples[conll_file] = swap_form_to_gloss(parsed_samples[conll_file])
+
     shutil.rmtree(path_tmp)
 
     return {
